@@ -20,7 +20,6 @@ def get_db_connection():
         db.execute(text("SELECT 1")).fetchone()
         yield db 
     except SQLAlchemyError as e:
-        logging.error(f"There was an error when trying to connect to database: {str(e)}")
-        raise Exception("Error to connect to database") 
+        raise Exception("Error to connect to database" + str(e)) 
     finally:
         db.close()

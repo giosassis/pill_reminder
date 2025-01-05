@@ -5,9 +5,10 @@ class MedicationCreate(BaseModel):
     name: str
     dosage: str
     schedule_times: List[str]
+    category: str
 
 class Medication(MedicationCreate):
-    id: int
+    id: str
 
     class Config:
         orm_mode = True
