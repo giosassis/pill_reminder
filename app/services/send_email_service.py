@@ -33,5 +33,5 @@ def send_email(recipient_emails, subject, body):
         logging.info(f"Email was successfully sent to {recipient_emails}")
         return response
     except Exception as e:
-        logging.error(f"There was an error when tryint to send email + {str(e)}")
+        logging.error(f"There was an error when trying to send email + {str(e)}")
         return None
