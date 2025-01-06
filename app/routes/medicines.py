@@ -22,8 +22,13 @@ def get_medications_by_id(medication_id, db: Session = Depends(database.get_db_c
 
 @router.post("/medications/", response_model=Medication)
 def create_medication(medication: MedicationCreate, db: Session = Depends(get_db_connection)):
+    existing_medication = db.query(models.Medication).filter(models.Medication.name == medication.name).first()
+    if existing_medication:
+        raise HTTPException(status_code=400, detail="Medication with this name already exists")
+    
     custom_id = generate_id.generate_id(medication.category)  
     db_medication = models.Medication(id=custom_id, **medication.dict())
+    
     db.add(db_medication)
     db.commit()
     db.refresh(db_medication)
