@@ -15,7 +15,7 @@ app.include_router(send_email.router)
 @app.get("/")
 def read_root():
     print("Server is running")
-    return {"message": "Welcome to my personal application backend!"}
+    return {"message": "Welcome to my personal backend application!"}
 
 if __name__ == '__main__':
     get_db_connection()
