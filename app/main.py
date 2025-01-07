@@ -16,7 +16,3 @@ app.include_router(send_email.router)
 def read_root():
     print("Server is running")
     return {"message": "Welcome to my personal backend application!"}
-
-if __name__ == '__main__':
-    get_db_connection()
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
