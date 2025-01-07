@@ -1,9 +1,7 @@
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import ARRAY
-from app.database import Base
-
-Base = declarative_base()
+from app.models.base import Base 
 
 class Medication(Base):
     __tablename__ = "medications"
