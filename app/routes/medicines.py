@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app import models, database
 from app.models.medication_models import Medication
-from app.services import generate_id
+from app.utils.generate_medication_id import generate_medication_id
 from app.database import get_db_connection
 from app.schemas import MedicationCreate, Medication  
 
@@ -26,7 +26,7 @@ def create_medication(medication: MedicationCreate, db: Session = Depends(get_db
     if existing_medication:
         raise HTTPException(status_code=400, detail="Medication with this name already exists")
     
-    custom_id = generate_id.generate_id(medication.category)  
+    custom_id = generate_medication_id.generate_medication_id(medication.category)  
     db_medication = models.Medication(id=custom_id, **medication.dict())
     
     db.add(db_medication)
