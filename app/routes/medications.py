@@ -15,9 +15,15 @@ def get_service(db: Session = Depends(get_db_connection)) -> MedicationService:
 def get_all_medications(service: MedicationService = Depends(get_service)):
     return service.get_all_medications()
 
-@router.get("/medications/ids/")
-def get_medication_ids(service: MedicationService = Depends(get_service)):
-    return service.get_medication_ids()
+@router.get("/medications/{medication_id}")
+def get_medication_by_id(
+    medication_id: str, 
+    service: MedicationService = Depends(get_service)
+):
+    medication = service.get_medication_by_id(medication_id)
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    return medication
 
 @router.post("/medications/", response_model=MedicationCreate)
 def create_medication(
@@ -29,17 +35,17 @@ def create_medication(
     except MedicationAlreadyExistsError:
         raise HTTPException(status_code=400, detail="Medication with this name already exists")
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e.message))
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/medications/{medication_id}", response_model=MedicationCreate)
 def update_medication(
-    medication_id: str, 
+    medication_id: str,
     medication_update: MedicationCreate,
     service: MedicationService = Depends(get_service)
 ):
-    medication_update.id = medication_id
     try:
-        return service.update_medication(medication_update)
+        updated_medication = service.update_medication(medication_id, medication_update)
+        return updated_medication
     except MedicationNotFoundError:
         raise HTTPException(status_code=404, detail="Medication not found")
     except ValueError as e:

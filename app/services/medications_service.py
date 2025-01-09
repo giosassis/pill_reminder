@@ -42,8 +42,8 @@ class MedicationService:
     def get_all_medications(self):
         return self.repository.get_all_medications()
     
-    def get_medication_ids(self):
-        return self.repository.get_medication_ids()
+    def get_medication_by_id(self, medication_id: str):
+        return self.repository.get_medication_by_id(medication_id)
     
     def create_medication(self, medication_data: MedicationCreate):
         existing_medication = self.repository.get_medication_by_name(medication_data.name)
@@ -59,18 +59,20 @@ class MedicationService:
         created_medication = self.repository.create_medication(medication_data, custom_id)
         return created_medication
     
-    def update_medication(self, medication_update: MedicationCreate):
-        existing_medication = self.repository.get_medication_by_id(medication_update.id)
+    def update_medication(self, medication_id: str, medication_update: MedicationCreate):
+        existing_medication = self.repository.get_medication_by_id(medication_id)
         if not existing_medication:
             raise medication_exceptions.MedicationNotFoundError()
-        
+
         self.validate_schedule_times(medication_update.schedule_times)
         self.validate_name_length(medication_update.name)
         self.validate_dosage(medication_update.dosage)
         self.validate_category(medication_update.category)
-        
-        self.repository.update_medication(existing_medication, medication_update.dict())
-        return existing_medication
+
+        updates = medication_update.dict(exclude_unset=True)
+
+        updated_medication = self.repository.update_medication(medication_id, updates)
+        return updated_medication
     
     def delete_medication(self, medication_id: str):
         existing_medication = self.repository.get_medication_by_id(medication_id)
@@ -78,5 +80,5 @@ class MedicationService:
         if not existing_medication:
             raise medication_exceptions.MedicationNotFoundError()
         
-        self.repository.delete_medication(existing_medication)
+        self.repository.delete_medication(medication_id)
         return {"detail": "Medication deleted successfully"}

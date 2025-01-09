@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from app.models.medication_models import Medication as MedicationModel
-from app.utils.generate_medication_id import generate_medication_id
 class MedicationRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -29,10 +28,10 @@ class MedicationRepository:
         medication = self.get_medication_by_id(medication_id)
         if not medication:
             raise ValueError("Medication not found")
-        
+
         for key, value in updates.items():
             setattr(medication, key, value)
-        
+
         self.db.commit()
         self.db.refresh(medication)
         return medication
@@ -41,6 +40,5 @@ class MedicationRepository:
         medication = self.get_medication_by_id(medication_id)
         if not medication:
             raise ValueError("Medication not found")
-        
         self.db.delete(medication)
         self.db.commit()
