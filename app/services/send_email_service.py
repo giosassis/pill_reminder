@@ -1,11 +1,18 @@
 import boto3
 import logging
-from app.config import ses_config
+from datetime import datetime
+from sqlalchemy import func
+from jinja2 import Environment, FileSystemLoader
+from app.config import ses_config, settings
 from app.database import SessionLocal
 from app.models.email_history import EmailHistory
 from app.utils.generate_history_id import generate_history_id
-from datetime import datetime
+from app.repositories.medication_repository import MedicationRepository
 
+# Configuração do Jinja2 para carregar os templates de e-mail
+email_template = Environment(loader=FileSystemLoader('app/utils/email_templates/'))
+
+# Cliente SES para enviar e-mails
 ses_client = boto3.client(
     'ses',
     aws_access_key_id=ses_config.AWS_ACCESS_KEY_ID, 
@@ -13,9 +20,44 @@ ses_client = boto3.client(
     region_name=ses_config.AWS_REGION
 )
 
-def send_email(recipient, subject, body):
-    """Função que envia e-mail através do AWS SES."""
+# Função para gerar o contexto do e-mail (com medicamentos)
+def generate_email_context(medications):
+    context = {
+        "user_name": settings.USER_NAME,
+        "medication": medications,
+    }
+    return context
+
+# Função para renderizar o template de e-mail
+def render_email_template(template_name, context):
+    template = email_template.get_template(template_name)
+    return template.render(context)
+
+# Função principal para enviar o e-mail
+def send_email(recipient, subject, template_name):
+    """Função que envia o e-mail com base nas informações do banco de dados."""
+    
+    db = SessionLocal()
+
+    # Chama o repositório para pegar os medicamentos que precisam ser enviados no horário atual
+    medications = MedicationRepository.get_medication_by_time(db, [datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+
+    # Se não houver medicamentos agendados, retorna uma mensagem de erro
+    if not medications:
+        db.close()
+        return "No medications scheduled for today."
+
+    # Prepara o contexto do e-mail (com nome de usuário e medicamentos)
+    context = {
+        "user_name": settings.USER_NAME,  # Ajuste para pegar do banco ou configuração
+        "medications": [{"name": med.name, "schedule_times": med.schedule_times} for med in medications]
+    }
+
+    # Renderiza o template com o contexto
+    body = render_email_template(template_name, context)
+
     try:
+        # Envia o e-mail usando o SES
         response = ses_client.send_email(
             Source=ses_config.SENDER_EMAIL,
             Destination={'ToAddresses': [recipient]},  
@@ -25,43 +67,30 @@ def send_email(recipient, subject, body):
                     'Data': subject,
                 },
                 'Body': {
-                    'Text': {
+                    'Html': {
                         'Charset': 'UTF-8',
                         'Data': body,
                     },
                 },
             }
         )
-        db = SessionLocal() 
+
+        # Registra o envio no banco de dados
         email_log = EmailHistory(
-            id=generate_history_id(),  
+            id=generate_history_id(),
             recipient_email=recipient,
             status="Success",
             sent_at=datetime.utcnow(),
             subject=subject,
-            error_message=None 
+            error_message=None
         )
-        db.add(email_log)  
-        db.commit()  
-        db.close()  
-
-        logging.info(f"Email was successfully sent to {recipient}")
+        db.add(email_log)
+        db.commit()
+        db.close()
 
         return response
 
     except Exception as e:
-        db = SessionLocal() 
-        email_log = EmailHistory(
-            id=generate_history_id(),
-            recipient_email=recipient,
-            status="Failed",
-            sent_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            subject=subject,
-            error_message=str(e)  
-        )
-        db.add(email_log)  
-        db.commit() 
-        db.close() 
-
-        logging.error(f"There was an error when trying to send email: {str(e)}")
+        db.close()
+        logging.error(f"Erro ao enviar e-mail para {recipient}: {str(e)}")
         return None

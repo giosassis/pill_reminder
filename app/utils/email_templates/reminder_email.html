@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lembrete de Medicação</title>
+  </head>
+  <body>
+    <p>Olá {{ user_name }},</p>
+    <p>Este é um lembrete para tomar os seguintes medicamentos:</p>
+    <ul>
+      {% for medication in medications %}
+      <li>{{ medication.name }} às {{ medication.time }}</li>
+      {% endfor %}
+    </ul>
+    <p>Cuide-se bem!</p>
+    <p>Atenciosamente,</p>
+    <p>Equipe MyMedication</p>
+  </body>
+</html>
