@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db_connection  
-from app.models.email_history import EmailHistory
+from app.models.EmailHistory import EmailHistory
 router = APIRouter()
 
 @router.get("/email_history/")

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.email_history import EmailHistory
+from app.models.EmailHistory import EmailHistory
 from app.utils.generate_history_id import generate_history_id
 from datetime import datetime
 
