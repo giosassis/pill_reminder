@@ -20,8 +20,6 @@ class MedicationRepository:
         return self.db.query(MedicationModel).filter(MedicationModel.name == name).first()
 
     def get_medication_by_time(db: Session, times: list):
-        """Obtém medicamentos agendados para horários específicos e retorna um JSON."""
-        # Obtém os horários relacionados aos medicamentos
         schedules = db.query(MedicationSchedule).filter(
             MedicationSchedule.schedules.in_(times)).all()
 
