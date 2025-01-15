@@ -1,5 +1,8 @@
-from .medication_models import Medication
-from .email_history import EmailHistory
-from .base import Base  # Garanta que o Base seja importado de onde ele foi definido
+from .Medication import Medication
+from .EmailHistory import EmailHistory
+from .User import User 
+from .MedicationSchedule import MedicationSchedule
+from .UserMedication import UserMedication
+from .Base import Base 
 
-__all__ = ["Medication", "EmailHistory", "Base"]
+__all__ = ["Medication", "EmailHistory", "Base", "User", "MedicationSchedule", "UserMedication"]
